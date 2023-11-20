@@ -35,9 +35,10 @@ class CacheFetchInterface(implicit params: Parameters) extends Module {
   }
 
   val fetchedAddressValid = RegInit(false.B)
-  val fetchedAddress = Reg(UInt(64.W))
+  val fetchedAddress = RegInit("xFFFFFFFFF_FFFFFFFF".U)
   val fetchedData = Reg(UInt(128.W))
   val prevFetchedDataTop16 = Reg(UInt(16.W))
+  val nextBlock = RegInit(false.B)
 
   val fetchNew = RegInit(true.B)
   val fetchNewNow = WireDefault(fetchNew)
@@ -50,12 +51,27 @@ class CacheFetchInterface(implicit params: Parameters) extends Module {
   }
 
   when(io.fetch.requestNext.valid && fetchNewNow) {
-    io.cache.request.valid := true.B
-    io.cache.request.bits := io.fetch.requestNext.bits(63, 4) ## 0.U(4.W)
-    when(io.cache.request.ready) {
-      fetchedAddress := io.fetch.requestNext.bits(63, 4) ## 0.U(4.W)
-      fetchedAddressValid := false.B
-      fetchNew := false.B
+    val isEdge = io.fetch.requestNext.bits(3, 0) === BitPat("b111?")
+
+    when(fetchedAddress(63, 4) === io.fetch.requestNext.bits(63, 4) && isEdge) {
+      io.cache.request.valid := true.B
+      io.cache.request.bits :=
+        (io.fetch.requestNext.bits(63, 4) + 1.U) ## 0.U(4.W)
+      when(io.cache.request.ready) {
+        fetchedAddress := (io.fetch.requestNext.bits(63, 4) + 1.U) ## 0.U(4.W)
+        fetchedAddressValid := false.B
+        fetchNew := false.B
+        nextBlock := true.B
+      }
+    }.otherwise {
+      io.cache.request.valid := true.B
+      io.cache.request.bits := io.fetch.requestNext.bits(63, 4) ## 0.U(4.W)
+      when(io.cache.request.ready) {
+        fetchedAddress := io.fetch.requestNext.bits(63, 4) ## 0.U(4.W)
+        fetchedAddressValid := false.B
+        fetchNew := isEdge
+        nextBlock := (io.fetch.requestNext.bits(63, 4) - fetchedAddress) === 1.U
+      }
     }
   }
 
@@ -77,19 +93,32 @@ class CacheFetchInterface(implicit params: Parameters) extends Module {
       f.response.bits := MuxLookup(f.request.bits(3, 1), 0.U)(
         (0 until 8 - 1).map(i => i.U -> fetchedDataNow(16 * i + 32 - 1, 16 * i)),
       )
-      when(f.request.valid && f.request.bits(63, 4) === fetchedAddress(63, 4)) {
-        when(f.request.bits(3, 0) === BitPat("b111?")) {
-          f.response.valid := false.B
-        }.otherwise {
-          f.response.valid := true.B
+      when(f.request.valid) {
+        when(f.request.bits(63, 4) === fetchedAddress(63, 4)) {
+          when(f.request.bits(3, 0) === BitPat("b111?") && !nextBlock) {
+            f.response.valid := false.B
+          }.otherwise {
+            f.response.valid := true.B
+          }
+        }.elsewhen(
+          (f.request.bits(63, 4) + 1.U) === fetchedAddress(63, 4) && nextBlock,
+        ) {
+          when(f.request.bits(3, 0) === BitPat("b111?") && nextBlock) {
+            f.response.valid := true.B
+            f.response.bits := fetchedDataNow(15, 0) ## prevFetchedDataTop16
+          }.otherwise {
+            f.response.valid := false.B
+          }
         }
       }
     }
   }
-
 }
 
 object CacheFetchInterface extends App {
   implicit val params: Parameters = Parameters()
-  ChiselStage.emitSystemVerilogFile(new CacheFetchInterface())
+  ChiselStage.emitSystemVerilogFile(
+    new CacheFetchInterface(),
+    firtoolOpts = Array("--disable-all-randomization"),
+  )
 }
