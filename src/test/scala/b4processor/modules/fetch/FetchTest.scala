@@ -100,7 +100,7 @@ class FetchWrapper()(implicit params: Parameters) extends Module {
   axiMemory.simulationSource.input <> io.memorySetup
 
   fetch.io.cache.zip(io.cacheAddress).foreach { case (f, c) => f.address <> c }
-  cache.io.fetch.zip(io.cacheOutput).foreach { case (c, f) => c.output <> f }
+//  cache.io.fetch.zip(io.cacheOutput).foreach { case (c, f) => c.output <> f } //TODO fix
 
   io.PC := fetch.io.PC.get
   io.nextPC := fetch.io.nextPC.get
