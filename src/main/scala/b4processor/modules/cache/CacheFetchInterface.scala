@@ -67,6 +67,7 @@ class CacheFetchInterface(implicit params: Parameters) extends Module {
           fetchedAddressValid := false.B
           fetchNew := false.B
           nextBlock := true.B
+          prevFetchedDataTop16 := fetchedData(127, 112) // top 16 bits
         }
       }
     }.otherwise {
@@ -89,7 +90,6 @@ class CacheFetchInterface(implicit params: Parameters) extends Module {
     fetchedAddressValidNow := true.B
     fetchedData := io.cache.response.bits
     fetchedDataNow := io.cache.response.bits
-    prevFetchedDataTop16 := fetchedData(127, 112) // top 16 bits
     io.cache.response.ready := true.B
   }
 

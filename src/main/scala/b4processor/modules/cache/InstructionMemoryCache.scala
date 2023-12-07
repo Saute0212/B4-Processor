@@ -46,6 +46,7 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
   val IndexBits = log2Up(params.ICacheSet)
   val TagBits = 63 - IndexBits - OffsetBits - IgnoreBits
   val AddrOffset = addr(IgnoreBits + OffsetBits - 1, IgnoreBits)
+  val AddrOffsetReg = Reg(UInt(OffsetBits.W))
   val AddrIndex = addr(IgnoreBits + OffsetBits + IndexBits - 1, IgnoreBits + OffsetBits)
   val AddrTag = addr(63, IgnoreBits + OffsetBits + IndexBits)
 
@@ -97,6 +98,9 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
     //アドレスを送信
     io.memory.request.valid := io.fetch.request.valid
     io.fetch.request.ready := io.memory.request.ready
+    when(io.fetch.request.valid) {
+      AddrOffsetReg := AddrOffset
+    }
 
     val MemAddr = addr(63, 6) ## 0.U(6.W)
     io.memory.request.bits.address := MemAddr
@@ -117,8 +121,9 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
       when(count === 8.U) {
         io.memory.response.ready := false.B
         val ReadDataCom = Cat(ReadDataBuf.reverse)
-        val DataMissOut = MuxLookup(AddrOffset, 0.U)(
-          (0 until params.ICacheDataNum).map(i => i.U -> ReadDataCom((params.ICacheBlockWidth / params.ICacheDataNum) * (i + 1) - 1, (params.ICacheBlockWidth / params.ICacheDataNum) * i))
+        val DataMissOut = MuxLookup(AddrOffsetReg, 0.U)(
+          (0 until params.ICacheDataNum).map(i =>
+            i.U -> ReadDataCom((params.ICacheBlockWidth / params.ICacheDataNum) * (i + 1) - 1, (params.ICacheBlockWidth / params.ICacheDataNum) * i))
         )
         DataResponse := DataMissOut
         ReturnFlag := 1.U
