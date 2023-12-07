@@ -40,37 +40,43 @@ class CacheFetchInterface(implicit params: Parameters) extends Module {
   val prevFetchedDataTop16 = Reg(UInt(16.W))
   val nextBlock = RegInit(false.B)
 
+  val requestingAddress = io.fetch.perDecoder(0).request.bits
+  val requestingAddressValid = io.fetch.perDecoder(0).request.valid
+
   val fetchNew = RegInit(true.B)
   val fetchNewNow = WireDefault(fetchNew)
+  val isEdge = requestingAddress(3, 0) === BitPat("b111?")
+
   when(
-    io.fetch.requestNext.valid &&
-      io.fetch.requestNext.bits(63, 4) =/=
-      RegNext(io.fetch.requestNext.bits(63, 4)),
+    requestingAddressValid &&
+      (requestingAddress(63, 4) =/=
+        RegNext(requestingAddress(63, 4), 0.U) || isEdge)
   ) {
-    fetchNew := true.B
+    fetchNewNow := true.B
   }
 
-  when(io.fetch.requestNext.valid && fetchNewNow) {
-    val isEdge = io.fetch.requestNext.bits(3, 0) === BitPat("b111?")
+  when(requestingAddressValid && fetchNewNow) {
 
-    when(fetchedAddress(63, 4) === io.fetch.requestNext.bits(63, 4) && isEdge) {
-      io.cache.request.valid := true.B
-      io.cache.request.bits :=
-        (io.fetch.requestNext.bits(63, 4) + 1.U) ## 0.U(4.W)
-      when(io.cache.request.ready) {
-        fetchedAddress := (io.fetch.requestNext.bits(63, 4) + 1.U) ## 0.U(4.W)
-        fetchedAddressValid := false.B
-        fetchNew := false.B
-        nextBlock := true.B
+    when(isEdge) {
+      when(fetchedAddress(63, 4) === requestingAddress(63, 4)) {
+        io.cache.request.valid := true.B
+        io.cache.request.bits :=
+          (requestingAddress(63, 4) + 1.U) ## 0.U(4.W)
+        when(io.cache.request.ready) {
+          fetchedAddress := (requestingAddress(63, 4) + 1.U) ## 0.U(4.W)
+          fetchedAddressValid := false.B
+          fetchNew := false.B
+          nextBlock := true.B
+        }
       }
     }.otherwise {
       io.cache.request.valid := true.B
-      io.cache.request.bits := io.fetch.requestNext.bits(63, 4) ## 0.U(4.W)
+      io.cache.request.bits := requestingAddress(63, 4) ## 0.U(4.W)
       when(io.cache.request.ready) {
-        fetchedAddress := io.fetch.requestNext.bits(63, 4) ## 0.U(4.W)
+        fetchedAddress := requestingAddress(63, 4) ## 0.U(4.W)
         fetchedAddressValid := false.B
         fetchNew := isEdge
-        nextBlock := (io.fetch.requestNext.bits(63, 4) - fetchedAddress) === 1.U
+        nextBlock := (requestingAddress(63, 4) - fetchedAddress) === 1.U
       }
     }
   }
