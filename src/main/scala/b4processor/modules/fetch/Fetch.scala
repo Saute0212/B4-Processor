@@ -21,7 +21,7 @@ class Fetch(wfiWaitWidth: Int = 10)(implicit params: Parameters)
 
     /** 命令キャッシュ */
     val cache =
-      Flipped(Vec(params.decoderPerThread, new InstructionCache2Fetch))
+      Flipped(new InstructionCache2Fetch)
 
     /** 分岐予測 */
     val prediction = Vec(params.decoderPerThread, new Fetch2BranchPrediction)
@@ -69,24 +69,25 @@ class Fetch(wfiWaitWidth: Int = 10)(implicit params: Parameters)
   var nextWait = waiting
   for (i <- 0 until params.decoderPerThread) {
     val decoder = io.fetchBuffer.toBuffer(i)
-    val cache = io.cache(i)
+    val cache = io.cache.perDecoder(i)
 
-    cache.address.bits := nextPC
+    cache.request.bits := nextPC
 
     val branch = checkBranches(i)
-    branch.io.instruction := cache.output.bits
+    branch.io.instruction := cache.response.bits
     if (params.debug)
       io.branchTypes.get(i) := branch.io.branchType
 
     // キャッシュからの値があり、待つ必要はなく、JAL命令ではない（JALはアドレスを変えるだけとして処理できて、デコーダ以降を使う必要はない）
-    val instructionValid = cache.output.valid && nextWait === WaitingReason.None
+    val instructionValid =
+      cache.response.valid && nextWait === WaitingReason.None
     decoder.valid := instructionValid &&
       (branch.io.branchType =/= BranchType.mret && branch.io.branchType =/= BranchType.Fence && branch.io.branchType =/= BranchType.FenceI && branch.io.branchType =/= BranchType.Wfi) &&
       !io.isError
     decoder.bits.programCounter := nextPC
-    decoder.bits.instruction := cache.output.bits
+    decoder.bits.instruction := cache.response.bits
 
-    cache.address.valid := nextWait === WaitingReason.None
+    cache.request.valid := nextWait === WaitingReason.None
 
     // 次に停止する必要があるか確認
     nextWait = Mux(
@@ -122,6 +123,9 @@ class Fetch(wfiWaitWidth: Int = 10)(implicit params: Parameters)
   }
   pc := nextPC
   waiting := nextWait
+
+  io.cache.requestNext.valid := true.B
+  io.cache.requestNext.bits := nextPC
 
   val wfiCnt = Reg(UInt(wfiWaitWidth.W))
 

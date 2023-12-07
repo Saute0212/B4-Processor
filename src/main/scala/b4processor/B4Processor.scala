@@ -1,15 +1,11 @@
 package b4processor
 
-import b4processor.connections.{
-  OutputValue,
-  ReservationStation2Executor,
-  ReservationStation2PExtExecutor,
-}
+import b4processor.connections.{OutputValue, ReservationStation2Executor, ReservationStation2PExtExecutor}
 import b4processor.modules.AtomicLSU
 import b4processor.modules.PExt.B4PExtExecutor
 import circt.stage.ChiselStage
 import b4processor.modules.branch_output_collector.BranchOutputCollector
-import b4processor.modules.cache.{DataMemoryBuffer, InstructionMemoryCache}
+import b4processor.modules.cache.{CacheFetchInterface, DataMemoryBuffer, InstructionMemoryCache}
 import b4processor.modules.csr.{CSR, CSRReservationStation}
 import b4processor.modules.decoder.{Decoder, Uncompresser}
 import b4processor.modules.executor.Executor
@@ -19,13 +15,7 @@ import b4processor.modules.memory.ExternalMemoryInterface
 import b4processor.modules.outputcollector.{OutputCollector, OutputCollector2}
 import b4processor.modules.registerfile.{RegisterFile, RegisterFileMem}
 import b4processor.modules.reorderbuffer.ReorderBuffer
-import b4processor.modules.reservationstation.{
-  IssueBuffer,
-  IssueBuffer2,
-  IssueBuffer3,
-  ReservationStation,
-  ReservationStation2,
-}
+import b4processor.modules.reservationstation.{IssueBuffer, IssueBuffer2, IssueBuffer3, ReservationStation, ReservationStation2}
 import b4processor.utils.axi.{ChiselAXI, VerilogAXI}
 import chisel3._
 import chisel3.experimental.dataview.DataViewable
@@ -49,6 +39,7 @@ class B4Processor(implicit params: Parameters) extends Module {
   private val instructionCache =
     Seq.fill(params.threads)(Module(new InstructionMemoryCache))
   private val fetch = Seq.fill(params.threads)(Module(new Fetch))
+  private val cacheFetchInterface = Seq.fill(params.threads)(Module(new CacheFetchInterface()))
   private val fetchBuffer = Seq.fill(params.threads)(Module(new FetchBuffer))
   private val reorderBuffer =
     Seq.fill(params.threads)(Module(new ReorderBuffer))
@@ -144,7 +135,8 @@ class B4Processor(implicit params: Parameters) extends Module {
     registerFile(tid).io.threadId := tid.U
 
     /** 命令キャッシュとフェッチを接続 */
-    instructionCache(tid).io.fetch <> fetch(tid).io.cache
+    cacheFetchInterface(tid).io.fetch <> fetch(tid).io.cache
+    cacheFetchInterface(tid).io.cache <> instructionCache(tid).io.fetch
 
     /** フェッチとフェッチバッファの接続 */
     fetch(tid).io.fetchBuffer <> fetchBuffer(tid).io.input
@@ -284,7 +276,7 @@ object B4Processor extends App {
     new B4ProcessorFixedPorts(),
     Array.empty,
     Array(
-      "--lowering-options=disallowLocalVariables,disallowPackedArrays,noAlwaysComb",
+//      "--lowering-options=disallowLocalVariables,disallowPackedArrays,noAlwaysComb",
       "--disable-all-randomization",
       "--add-vivado-ram-address-conflict-synthesis-bug-workaround",
     ),

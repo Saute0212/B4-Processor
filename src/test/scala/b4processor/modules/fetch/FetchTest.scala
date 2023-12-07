@@ -3,7 +3,7 @@ package b4processor.modules.fetch
 import b4processor.Parameters
 import b4processor.connections.{Fetch2BranchPrediction, Fetch2FetchBuffer}
 import b4processor.modules.branch_output_collector.CollectedBranchAddresses
-import b4processor.modules.cache.InstructionMemoryCache
+import b4processor.modules.cache.{CacheFetchInterface, InstructionMemoryCache}
 import b4processor.modules.memory.{ExternalMemoryInterface, InstructionMemory}
 import b4processor.utils.{InstructionUtil, SimpleAXIMemory, SymbiYosysFormal}
 import chisel3._
@@ -36,7 +36,7 @@ class FetchWrapper()(implicit params: Parameters) extends Module {
     val reorderBufferEmpty = Input(Bool())
 
     /** キャッシュに要求されているアドレス */
-    val cacheAddress = Vec(params.decoderPerThread, Valid(UInt(64.W)))
+    val cacheAddress = Decoupled(UInt(64.W))
 
     /** キャッシュからの出力 */
     val cacheOutput = Vec(params.decoderPerThread, Valid(UInt(64.W)))
@@ -57,7 +57,8 @@ class FetchWrapper()(implicit params: Parameters) extends Module {
   })
 
   val fetch = Module(new Fetch(1))
-  val cache = Module(new InstructionMemoryCache)
+  val cache = Module(new InstructionMemoryCache())
+  val cacheFetchIf = Module(new CacheFetchInterface)
   val memoryInterface = Module(new ExternalMemoryInterface)
   val axiMemory = Module(new SimpleAXIMemory)
 
@@ -74,7 +75,9 @@ class FetchWrapper()(implicit params: Parameters) extends Module {
   fetch.io.threadId := 0.U
   fetch.io.interrupt := io.interrupt
 
-  cache.io.fetch <> fetch.io.cache
+  cacheFetchIf.io.cache <> cache.io.fetch
+  cacheFetchIf.io.fetch <> fetch.io.cache
+
   cache.io.memory.request <> memoryInterface.io.instruction(0).request
   cache.io.memory.response <> memoryInterface.io.instruction(0).response
   cache.io.threadId := 0.U
@@ -99,8 +102,10 @@ class FetchWrapper()(implicit params: Parameters) extends Module {
   axiMemory.axi <> memoryInterface.io.coordinator
   axiMemory.simulationSource.input <> io.memorySetup
 
-  fetch.io.cache.zip(io.cacheAddress).foreach { case (f, c) => f.address <> c }
-//  cache.io.fetch.zip(io.cacheOutput).foreach { case (c, f) => c.output <> f } //TODO fix
+  fetch.io.cache.requestNext <> io.cacheAddress
+  fetch.io.cache.perDecoder.zip(io.cacheOutput) foreach { case (f, c) =>
+    f.response := c
+  }
 
   io.PC := fetch.io.PC.get
   io.nextPC := fetch.io.nextPC.get
@@ -172,8 +177,8 @@ class FetchTest
       )
 
       c.waitForCacheValid()
-      c.io.cacheAddress(0).bits.expect(0x10000000)
-      c.io.cacheAddress(1).bits.expect(0x10000004)
+      c.io.cacheAddress.bits.expect(0x10000000)
+      c.io.cacheAddress.bits.expect(0x10000004)
 
       c.io.cacheOutput(0).bits.expect("x00000013".U)
       c.io.cacheOutput(0).valid.expect(true)
@@ -198,8 +203,8 @@ class FetchTest
       c.setPrediction(Seq(true, true))
 
       c.waitForCacheValid()
-      c.io.cacheAddress(0).bits.expect(0x10000000)
-      c.io.cacheAddress(0).bits.expect(0x10000000)
+      c.io.cacheAddress.bits.expect(0x10000000)
+      c.io.cacheAddress.bits.expect(0x10000000)
 
       c.io.cacheOutput(0).bits.expect("x00000063".U)
       c.io.cacheOutput(0).valid.expect(true)
