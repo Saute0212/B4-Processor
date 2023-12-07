@@ -15,7 +15,7 @@ scalacOptions ++= Seq(
   "-JXmx2G"
 )
 
-//Test / logBuffered := false
+Test / logBuffered := false
 //Test / parallelExecution := false
 
 scalaVersion := "2.13.10"
