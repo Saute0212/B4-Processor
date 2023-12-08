@@ -80,7 +80,7 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
 
   val count = RegInit(0.U(8.W))
   
-  val SelectWay = RegInit(VecInit(Seq.fill(params.ICacheSet)(0.U(1.W))))
+  val SelectWay = RegInit(VecInit(Seq.fill(params.ICacheSet)(1.U(1.W))))
 
   when(RegNext(hit, false.B)) {
     /**
