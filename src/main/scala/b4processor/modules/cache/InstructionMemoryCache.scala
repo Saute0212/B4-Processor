@@ -46,8 +46,9 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
   val IndexBits = log2Up(params.ICacheSet)
   val TagBits = 63 - IndexBits - OffsetBits - IgnoreBits
   val AddrOffset = addr(IgnoreBits + OffsetBits - 1, IgnoreBits)
-  val AddrOffsetReg = Reg(UInt(OffsetBits.W))
+  val AddrOffsetReg = RegInit(0.U(OffsetBits.W))
   val AddrIndex = addr(IgnoreBits + OffsetBits + IndexBits - 1, IgnoreBits + OffsetBits)
+  val AddrIndexReg = RegInit(0.U(IndexBits.W))
   val AddrTag = addr(63, IgnoreBits + OffsetBits + IndexBits)
 
   //有効ビット・タグ・インデックス
@@ -76,7 +77,6 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
 
   val DataResponse = WireInit(UInt((params.ICacheBlockWidth / params.ICacheDataNum).W), 0.U)
 
-  // val ReturnFlag = RegInit(0.U(1.W))
   val count = RegInit(0.U(8.W))
 
   when(RegNext(hit, false.B)) {
@@ -100,45 +100,45 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
     io.fetch.request.ready := io.memory.request.ready
     when(io.fetch.request.valid) {
       AddrOffsetReg := AddrOffset
+      AddrIndexReg := AddrIndex
     }
 
     val MemAddr = addr(63, 6) ## 0.U(6.W)
     io.memory.request.bits.address := MemAddr
     io.memory.request.bits.burstLength := 7.U
 
-
     //データを受信
     val ReadDataBuf = RegInit(VecInit(Seq.fill(8)(0.U(64.W))))
-    when(true.B) {
-      io.memory.response.ready := true.B
+    io.memory.response.ready := true.B
 
-      //メモリからのデータ(64bit)をReadDataBufに格納
-      when(io.memory.response.valid) {
-        ReadDataBuf(count) := io.memory.response.bits.value
-        count := count + 1.U
-      }
+    //メモリからのデータ(64bit)をReadDataBufに格納
+    when(io.memory.response.valid) {
+      ReadDataBuf(count) := io.memory.response.bits.value
+      count := count + 1.U
+    }
 
-      when(count === 8.U) {
-        io.memory.response.ready := false.B
-        val ReadDataCom = Cat(ReadDataBuf.reverse)
-        val DataMissOut = MuxLookup(AddrOffsetReg, 0.U)(
-          (0 until params.ICacheDataNum).map(i =>
-            i.U -> ReadDataCom((params.ICacheBlockWidth / params.ICacheDataNum) * (i + 1) - 1, (params.ICacheBlockWidth / params.ICacheDataNum) * i))
-        )
-        DataResponse := DataMissOut
-        ReturnFlag := 1.U
+    when(count === 8.U) {
+      io.memory.response.ready := false.B
+      val ReadDataCom = Cat(ReadDataBuf.reverse)
+      val DataMissOut = MuxLookup(AddrOffsetReg, 0.U)(
+          (0 until params.ICacheDataNum).map(i => i.U -> ReadDataCom((params.ICacheBlockWidth / params.ICacheDataNum) * (i + 1) - 1, (params.ICacheBlockWidth / params.ICacheDataNum) * i))
+      )
 
-        /**
-         * キャッシュへ書き込み
-         * 有効ビット：true
-         * タグ：AddrIndex
-         * データブロック：ReadDataCom
-         * ウェイの選択は"0"と"1"に順番に書き込む
-         * // */
-        // ICacheTag(0).write(AddrIndex, AddrTag)
-        // ICacheDataBlock(0).write(AddrIndex, ReadDataCom)
-        // ICacheValidBit(0)(AddrIndex) := true.B
-      }
+      DataResponse := DataMissOut
+      ReturnFlag := 1.U
+
+      /**
+        * キャッシュへ書き込み
+        * 有効ビット：true
+        * タグ：AddrIndex
+        * データブロック：ReadDataCom
+        * ウェイの選択は"0"と"1"に順番に書き込む
+        * 
+        */
+      
+      val SelectWay = RegInit(VecInit(Seq.fill(params.ICacheSet)(1.U(1.W))))
+      SelectWay(AddrIndexReg) := SelectWay(AddrIndexReg) + 1.U
+      
     }
   }
 
@@ -151,6 +151,7 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
     }
   }
 
+  //countとReturnFlagを0に初期化
   when(io.fetch.response.ready) {
     count := 0.U
     ReturnFlag := 0.U
@@ -161,10 +162,6 @@ object InstructionMemoryCache extends App {
   implicit val params = Parameters()
   ChiselStage.emitSystemVerilogFile(new InstructionMemoryCache)
 }
-
-/*
-io.memory.request.ready
-*/
 
 /*
   |   [Requset]     |     |   [Requset]     |
