@@ -76,12 +76,16 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
   //BRAMからRead
   val ReadData = ICacheDataBlock(hitWayNum).read(AddrIndex)
 
+  //fetchへのリターンの内容を接続
   val DataResponse = WireInit(UInt((params.ICacheBlockWidth / params.ICacheDataNum).W), 0.U)
 
+  //バースト転送のカウンター
   val count = RegInit(0.U(8.W))
   
+  //ウェイのカウンター(各セットごとにカウンターを用意)
   val SelectWay = RegInit(VecInit(Seq.fill(params.ICacheSet)(1.U(1.W))))
 
+  //ヒットしたかどうか判定
   when(RegNext(hit, false.B)) {
     /**
      * ヒットした場合
@@ -91,13 +95,14 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
     )
     DataResponse := DataHitOut
     ReturnFlag := 1.U
-  }.otherwise {
+  } .otherwise {
     /**
      * ミスした場合
      * DRAMから読み込む
      * fetchへリターン
      * キャッシュへ書き込む
      */
+
     //アドレスを送信
     io.memory.request.valid := io.fetch.request.valid
     io.fetch.request.ready := io.memory.request.ready
@@ -121,9 +126,14 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
       count := count + 1.U
     }
 
+    //バースト転送終了時実行
     when(count === 8.U) {
       io.memory.response.ready := false.B
+
+      //データをリトルエンディアンでReadDataComへ格納
       val ReadDataCom = Cat(ReadDataBuf.reverse)
+
+      //ReadDataComのOffset番目をDataMissOutへ出力(128bitのデータ)
       val DataMissOut = MuxLookup(AddrOffsetReg, 0.U)(
           (0 until params.ICacheDataNum).map(i => i.U -> ReadDataCom((params.ICacheBlockWidth / params.ICacheDataNum) * (i + 1) - 1, (params.ICacheBlockWidth / params.ICacheDataNum) * i))
       )
@@ -139,8 +149,8 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
         * ウェイの選択は"0"と"1"に順番に書き込む
         */
       
+      //ウェイの選択を行い、キャッシュへ書き込む
       SelectWay(AddrIndexReg) := SelectWay(AddrIndexReg) + 1.U
-
       when(SelectWay(AddrIndexReg) === 0.U)
       {
         //ウェイ0に書き込み
@@ -148,7 +158,7 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
         ICacheTag(0).write(AddrIndexReg, AddrTagReg)
         RegNext(ICacheValidBit(0)(AddrIndexReg)) := true.B
       } .otherwise {
-        // //ウェイ1に書き込み
+        //ウェイ1に書き込み
         ICacheDataBlock(1).write(AddrIndexReg, DataResponse)
         ICacheTag(1).write(AddrIndexReg, AddrTagReg)
         RegNext(ICacheValidBit(1)(AddrIndexReg)) := true.B
