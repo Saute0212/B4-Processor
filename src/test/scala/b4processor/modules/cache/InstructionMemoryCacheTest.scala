@@ -96,8 +96,3 @@ class InstructionMemoryCacheTest
       }
   }
 }
-
-/*
-  Data            | 00 | 10 | 20 | 30 | 40 | 50 | 60 | 70 |
-  Address Rang    |  0-19   |  20-39  |  40-59  |  60-79  |
-*/
