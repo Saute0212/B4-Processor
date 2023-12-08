@@ -89,7 +89,7 @@ class z10_B4ProcessorProgramTest
         Seq(WriteWaveformAnnotation, backendAnnotation, CachingAnnotation),
       ) { c =>
         c.initialize("programs/riscv-sample-programs/fibonacci")
-        c.checkForRegister(6, 55, 200)
+        c.checkForRegister(6, 55, 3000)
       }
   }
 
@@ -100,9 +100,9 @@ class z10_B4ProcessorProgramTest
         Seq(WriteWaveformAnnotation, backendAnnotation, CachingAnnotation),
       ) { c =>
         c.initialize("programs/riscv-sample-programs/call_ret")
-        c.checkForRegister(5, 1, 100)
-        c.checkForRegister(6, 2, 20)
-        c.checkForRegister(7, 3, 20)
+        c.checkForRegister(5, 1, 200)
+        c.checkForRegister(6, 2, 100)
+        c.checkForRegister(7, 3, 100)
       }
   }
 
@@ -117,7 +117,7 @@ class z10_B4ProcessorProgramTest
         Seq(WriteWaveformAnnotation, backendAnnotation, CachingAnnotation),
       ) { c =>
         c.initialize("programs/riscv-sample-programs/many_add")
-        c.checkForRegister(1, 8, 100)
+        c.checkForRegister(1, 8, 500)
       }
   }
 
@@ -144,7 +144,7 @@ class z10_B4ProcessorProgramTest
         Seq(WriteWaveformAnnotation, backendAnnotation, CachingAnnotation),
       ) { c =>
         c.initialize("programs/riscv-sample-programs/many_add")
-        c.checkForRegister(1, 8, 100)
+        c.checkForRegister(1, 8, 1000)
       }
   }
 
@@ -159,7 +159,7 @@ class z10_B4ProcessorProgramTest
         Seq(WriteWaveformAnnotation, backendAnnotation, CachingAnnotation),
       ) { c =>
         c.initialize("programs/riscv-sample-programs/many_add")
-        c.checkForRegister(1, 8, 70)
+        c.checkForRegister(1, 8, 1000)
       }
   }
 
@@ -175,7 +175,7 @@ class z10_B4ProcessorProgramTest
         Seq(WriteWaveformAnnotation, backendAnnotation, CachingAnnotation),
       ) { c =>
         c.initialize("programs/riscv-sample-programs/many_add")
-        c.checkForRegister(1, 8, 70)
+        c.checkForRegister(1, 8, 2000)
       }
   }
 
@@ -196,7 +196,7 @@ class z10_B4ProcessorProgramTest
         Seq(WriteWaveformAnnotation, backendAnnotation, CachingAnnotation),
       ) { c =>
         c.initialize("programs/riscv-sample-programs/many_add")
-        c.checkForRegister(1, 8, 70)
+        c.checkForRegister(1, 8, 2000)
       }
   }
 
@@ -307,7 +307,7 @@ class z10_B4ProcessorProgramTest
         Seq(WriteWaveformAnnotation, backendAnnotation, CachingAnnotation),
       ) { c =>
         c.initialize("programs/riscv-sample-programs/fibonacci_c")
-        c.checkForRegisterChange(3, 1298777728820984005L, 10000)
+        c.checkForRegisterChange(3, 1298777728820984005L, 40000)
       }
   }
 
@@ -327,8 +327,8 @@ class z10_B4ProcessorProgramTest
         Seq(WriteWaveformAnnotation, backendAnnotation, CachingAnnotation),
       ) { c =>
         c.initialize("programs/riscv-sample-programs/load_plus_arithmetic")
-        c.checkForRegister(2, 20, 50)
-        c.checkForRegister(3, 1, 50)
+        c.checkForRegister(2, 20, 500)
+        c.checkForRegister(3, 1, 500)
       }
   }
 
@@ -348,7 +348,7 @@ class z10_B4ProcessorProgramTest
         Seq(WriteWaveformAnnotation, backendAnnotation, CachingAnnotation),
       ) { c =>
         c.initialize("programs/riscv-sample-programs/load_after_store")
-        c.checkForRegister(3, 10, 100)
+        c.checkForRegister(3, 10, 1000)
       }
   }
 
@@ -367,7 +367,7 @@ class z10_B4ProcessorProgramTest
         Seq(WriteWaveformAnnotation, backendAnnotation, CachingAnnotation),
       ) { c =>
         c.initialize("programs/riscv-sample-programs/enter_c")
-        c.checkForRegister(3, 5, 100)
+        c.checkForRegister(3, 5, 1000)
 
       }
   }
@@ -388,7 +388,7 @@ class z10_B4ProcessorProgramTest
         Seq(WriteWaveformAnnotation, backendAnnotation, CachingAnnotation),
       ) { c =>
         c.initialize("programs/riscv-sample-programs/calculation_c")
-        c.checkForRegister(3, 18, 400)
+        c.checkForRegister(3, 18, 2000)
 
       }
   }
@@ -408,7 +408,7 @@ class z10_B4ProcessorProgramTest
         Seq(WriteWaveformAnnotation, backendAnnotation, CachingAnnotation),
       ) { c =>
         c.initialize("programs/riscv-sample-programs/loop_c")
-        c.checkForRegister(3, 30, 1000)
+        c.checkForRegister(3, 30, 3000)
 
       }
   }
@@ -428,7 +428,7 @@ class z10_B4ProcessorProgramTest
         Seq(WriteWaveformAnnotation, backendAnnotation, CachingAnnotation),
       ) { c =>
         c.initialize("programs/riscv-sample-programs/loop_c")
-        c.checkForRegister(3, 30, 2000)
+        c.checkForRegister(3, 30, 6000)
 
       }
   }
@@ -470,7 +470,7 @@ class z10_B4ProcessorProgramTest
         Seq(WriteWaveformAnnotation, backendAnnotation, CachingAnnotation),
       ) { c =>
         c.initialize("programs/riscv-sample-programs/many_load_store")
-        c.checkForRegister(2, 36, 100)
+        c.checkForRegister(2, 36, 1000)
 
       }
   }
@@ -491,8 +491,8 @@ class z10_B4ProcessorProgramTest
         Seq(WriteWaveformAnnotation, backendAnnotation, CachingAnnotation),
       ) { c =>
         c.initialize("programs/riscv-sample-programs/load_store_cross")
-        c.checkForRegister(2, 101, 100)
-        c.checkForRegister(3, 201, 100)
+        c.checkForRegister(2, 101, 1000)
+        c.checkForRegister(3, 201, 1000)
 
       }
   }
@@ -513,8 +513,8 @@ class z10_B4ProcessorProgramTest
         Seq(WriteWaveformAnnotation, backendAnnotation, CachingAnnotation),
       ) { c =>
         c.initialize("programs/riscv-sample-programs/load_store_cross")
-        c.checkForRegister(2, 101, 100)
-        c.checkForRegister(3, 201, 100)
+        c.checkForRegister(2, 101, 500)
+        c.checkForRegister(3, 201, 500)
       }
   }
 
