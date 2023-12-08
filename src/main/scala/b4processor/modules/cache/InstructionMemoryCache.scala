@@ -35,6 +35,7 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
   io.memory.response.ready := false.B
 
   io.memory.request.bits.size := MemoryAccessWidth.DoubleWord
+  io.memory.request.bits.burstLength := 7.U
 
   //アドレスを格納
   val addr = WireInit(UInt(64.W), 0.U)
@@ -57,6 +58,12 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
   val ICacheTag = Seq.fill(params.ICacheWay)(SyncReadMem(params.ICacheSet, UInt((TagBits + 1).W)))
   val ICacheDataBlock = Seq.fill(params.ICacheWay)(SyncReadMem(params.ICacheSet, UInt(params.ICacheBlockWidth.W)))
 
+  //バースト転送のカウンター
+  val count = RegInit(0.U(8.W))
+  
+  //ウェイのカウンター(各セットごとにカウンターを用意)
+  val SelectWay = RegInit(VecInit(Seq.fill(params.ICacheSet)(1.U(1.W))))
+
   //ヒットしたかどうか判定
   val hitVec = WireInit(VecInit(Seq.fill(params.ICacheWay)(false.B)))
   val ReturnFlag = RegInit(0.U(1.W))
@@ -78,12 +85,6 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
 
   //fetchへのリターンの内容を接続
   val DataResponse = WireInit(UInt((params.ICacheBlockWidth / params.ICacheDataNum).W), 0.U)
-
-  //バースト転送のカウンター
-  val count = RegInit(0.U(8.W))
-  
-  //ウェイのカウンター(各セットごとにカウンターを用意)
-  val SelectWay = RegInit(VecInit(Seq.fill(params.ICacheSet)(1.U(1.W))))
 
   //ヒットしたかどうか判定
   when(RegNext(hit, false.B)) {
@@ -114,7 +115,6 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
 
     val MemAddr = addr(63, 6) ## 0.U(6.W)
     io.memory.request.bits.address := MemAddr
-    io.memory.request.bits.burstLength := 7.U
 
     //データを受信
     val ReadDataBuf = RegInit(VecInit(Seq.fill(8)(0.U(64.W))))
@@ -188,7 +188,7 @@ object InstructionMemoryCache extends App {
 }
 
 /*
-  === Test Result : 2023/12/09 02:01 ===
+  === Test Result : 2023/12/09 02:40 ===
   Total Test : 31
   Succeeded  : 15
   Failed     : 16
