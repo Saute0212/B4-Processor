@@ -78,6 +78,8 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
   val DataResponse = WireInit(UInt((params.ICacheBlockWidth / params.ICacheDataNum).W), 0.U)
 
   val count = RegInit(0.U(8.W))
+  
+  val SelectWay = RegInit(VecInit(Seq.fill(params.ICacheSet)(1.U(1.W))))
 
   when(RegNext(hit, false.B)) {
     /**
@@ -136,9 +138,7 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
         * 
         */
       
-      val SelectWay = RegInit(VecInit(Seq.fill(params.ICacheSet)(1.U(1.W))))
       SelectWay(AddrIndexReg) := SelectWay(AddrIndexReg) + 1.U
-      
     }
   }
 
@@ -162,6 +162,13 @@ object InstructionMemoryCache extends App {
   implicit val params = Parameters()
   ChiselStage.emitSystemVerilogFile(new InstructionMemoryCache)
 }
+
+/*
+  === Test Result ===
+  Total Test : 31
+  Succeeded  : 15
+  Failed     : 16
+*/
 
 /*
   |   [Requset]     |     |   [Requset]     |
