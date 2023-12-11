@@ -64,9 +64,11 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
   //ウェイのカウンター(各セットごとにカウンターを用意)
   val SelectWay = RegInit(VecInit(Seq.fill(params.ICacheSet)(1.U(1.W))))
 
+  //Fetchへリターンしたかどうかのフラグ
+  val ReturnFlag = RegInit(0.U(1.W))
+
   //ヒットしたかどうか判定
   val hitVec = WireInit(VecInit(Seq.fill(params.ICacheWay)(false.B)))
-  val ReturnFlag = RegInit(0.U(1.W))
   var hitWayNum = 0
   when(ReturnFlag === 0.U) {
     for (i <- 0 until params.ICacheWay) {
