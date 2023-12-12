@@ -35,7 +35,7 @@ class CacheFetchInterface(implicit params: Parameters) extends Module {
   }
 
   val fetchedAddressValid = RegInit(false.B)
-  val fetchedAddress = RegInit("xFFFFFFFFF_FFFFFFFF".U)
+  val fetchedAddress = RegInit("xFFFFFFFF_FFFFFFFF".U)
   val fetchedData = Reg(UInt(128.W))
   val prevFetchedDataTop16 = Reg(UInt(16.W))
   val nextBlock = RegInit(false.B)
@@ -46,11 +46,18 @@ class CacheFetchInterface(implicit params: Parameters) extends Module {
   val fetchNew = RegInit(true.B)
   val fetchNewNow = WireDefault(fetchNew)
   val isEdge = requestingAddress(3, 0) === BitPat("b111?")
+  val isRequesting = RegInit(false.B)
+
+  when(io.cache.request.valid && io.cache.request.ready) {
+    isRequesting := true.B
+  }.elsewhen(io.cache.response.valid && io.cache.response.ready) {
+    isRequesting := false.B
+  }
 
   when(
-    requestingAddressValid &&
-      (requestingAddress(63, 4) =/=
-        RegNext(requestingAddress(63, 4), 0.U) || isEdge)
+    requestingAddressValid && !isRequesting &&
+      (fetchedAddress(63, 4) =/=
+        requestingAddress(63, 4) || isEdge),
   ) {
     fetchNewNow := true.B
   }
@@ -100,20 +107,19 @@ class CacheFetchInterface(implicit params: Parameters) extends Module {
         (0 until 8 - 1).map(i => i.U -> fetchedDataNow(16 * i + 32 - 1, 16 * i)),
       )
       when(f.request.valid) {
-        when(f.request.bits(63, 4) === fetchedAddress(63, 4)) {
-          when(f.request.bits(3, 0) === BitPat("b111?") && !nextBlock) {
-            f.response.valid := false.B
-          }.otherwise {
-            f.response.valid := true.B
-          }
-        }.elsewhen(
-          (f.request.bits(63, 4) + 1.U) === fetchedAddress(63, 4) && nextBlock,
-        ) {
+        when((f.request.bits(63, 4) + 1.U) === fetchedAddress(63, 4)) {
           when(f.request.bits(3, 0) === BitPat("b111?") && nextBlock) {
             f.response.valid := true.B
             f.response.bits := fetchedDataNow(15, 0) ## prevFetchedDataTop16
           }.otherwise {
             f.response.valid := false.B
+          }
+        }
+        when((f.request.bits(63, 4)) === fetchedAddress(63, 4)) {
+          when(f.request.bits(3, 0) === BitPat("b111?")) {
+            f.response.valid := false.B
+          }.otherwise {
+            f.response.valid := true.B
           }
         }
       }
