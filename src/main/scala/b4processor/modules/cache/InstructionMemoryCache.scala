@@ -158,12 +158,12 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
         //ウェイ0に書き込み
         ICacheDataBlock(0).write(AddrIndexReg, DataResponse)
         ICacheTag(0).write(AddrIndexReg, AddrTagReg)
-        RegNext(ICacheValidBit(0)(AddrIndexReg)) := true.B
+        ICacheValidBit(0)(AddrIndexReg) := true.B
       } .otherwise {
         //ウェイ1に書き込み
         ICacheDataBlock(1).write(AddrIndexReg, DataResponse)
         ICacheTag(1).write(AddrIndexReg, AddrTagReg)
-        RegNext(ICacheValidBit(1)(AddrIndexReg)) := true.B
+        ICacheValidBit(1)(AddrIndexReg) := true.B
       }
     }
   }
