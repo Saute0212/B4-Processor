@@ -42,4 +42,5 @@ case class Parameters(
   ICacheSet: Int = 8,
   ICacheBlockWidth: Int = 512,
   ICacheDataNum: Int = 4,
+  MemoryBurstLength: Int = 8,
 )
