@@ -77,6 +77,7 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
   //ヒットしたかどうか判定
   val hitVec = RegInit(VecInit(Seq.fill(params.ICacheWay)(false.B)))
   val hitWayNum = RegInit(0.U(log2Up(params.ICacheWay).W))
+  // val hit = RegInit((false.B))
   for(i <- 0 until params.ICacheWay)
   {
     hitVec(i) := ICacheValidBit(i)(AddrIndexReg) && ICacheTag(i).read(AddrIndexReg) === AddrTagReg
@@ -86,7 +87,7 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
     }
   }
 
-  val hit = hitVec.reduce(_ || _)
+  val hit := hitVec.reduce(_ || _)
 
   //BRAMからRead
   val ReadData = MuxLookup(hitWayNum, 0.U)((0 until params.ICacheWay).map(i => i.U -> ICacheDataBlock(i).read(AddrIndexReg)))
