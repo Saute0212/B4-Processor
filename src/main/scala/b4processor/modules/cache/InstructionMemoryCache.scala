@@ -94,7 +94,7 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
   hit := hitVec.reduce(_ || _)
   
   //BRAMからRead
-  val ReadData = MuxLookup(hitWayNum, 0.U)((0 until params.ICacheWay).map(i => i.U -> ICacheDataBlock(i).read(AddrIndexReg)))
+  val ReadData = MuxLookup(hitWayNum, 0.U)((0 until params.ICacheWay).map(i => i.U -> ICacheDataBlock(i).read(AddrIndex)))
   
   when(hit)
   {
@@ -131,13 +131,13 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
         //ウェイ0に書き込み
         ICacheDataBlock(0).write(AddrIndexReg, ReadDataCom)
         ICacheTag(0).write(AddrIndexReg, AddrTagReg)
-        // ICacheValidBit(0)(AddrIndexReg) := true.B
+        ICacheValidBit(0)(AddrIndexReg) := true.B
         count := 0.U
       } .otherwise {
         //ウェイ1に書き込み
         ICacheDataBlock(1).write(AddrIndexReg, ReadDataCom)
         ICacheTag(1).write(AddrIndexReg, AddrTagReg)
-        // ICacheValidBit(1)(AddrIndexReg) := true.B
+        ICacheValidBit(1)(AddrIndexReg) := true.B
         count := 0.U
       }
 
