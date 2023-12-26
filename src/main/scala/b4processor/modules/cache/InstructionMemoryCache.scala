@@ -63,7 +63,7 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
   val AddrTag = addr(63, IgnoreBits + OffsetBits + IndexBits)
   val AddrTagReg = RegInit(0.U(TagBits.W))
 
-  //アドレスをタグ・インデックス・オフセットに分け、レジスタに格納
+  //タグ・インデックス・オフセットをレジスタに格納
   when(io.fetch.request.valid) {
     AddrOffsetReg := AddrOffset
     AddrIndexReg := AddrIndex
