@@ -111,8 +111,9 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
     io.fetch.response.bits := DataHitOut
   } .otherwise {
     //ミスした場合
-    io.memory.response.ready := true.B
 
+    io.memory.response.ready := true.B
+    
     //メモリからのデータ(64bit)をReadDataBufに格納
     when(io.memory.response.valid) {
       ReadDataBuf(count) := io.memory.response.bits.value
@@ -132,7 +133,7 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
       io.fetch.response.bits := DataMissOut
 
       count := 0.U
-      
+
       //ウェイの選択を行い、キャッシュへ書き込む
       // SelectWay(AddrIndexReg) := SelectWay(AddrIndexReg) + 1.U
       // when(SelectWay(AddrIndexReg) === 0.U)
@@ -159,10 +160,10 @@ object InstructionMemoryCache extends App {
 }
 
 /*
-  === Test Result : 2023/12/09 02:40 ===
+  === Test Result : 2023/12/29 01:20 ===
   Total Test : 31
-  Succeeded  : 15
-  Failed     : 16
+  Succeeded  : 29
+  Failed     : 2
 */
 
 /*
