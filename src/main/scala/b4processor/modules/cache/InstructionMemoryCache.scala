@@ -63,11 +63,91 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
   val AddrTag = addr(63, IgnoreBits + OffsetBits + IndexBits)
   val AddrTagReg = RegInit(0.U(TagBits.W))
 
+  //有効ビット・タグ・インデックス
+  val ICacheValidBit = RegInit(VecInit(Seq.fill(params.ICacheWay)(VecInit(Seq.fill(params.ICacheSet)(false.B)))))
+  val ICacheTag = Seq.fill(params.ICacheWay)(SyncReadMem(params.ICacheSet, UInt(TagBits.W)))
+  val ICacheDataBlock = Seq.fill(params.ICacheWay)(SyncReadMem(params.ICacheSet, UInt(params.ICacheBlockWidth.W)))
+
+  //バースト転送のバッファー
+  val ReadDataBuf = RegInit(VecInit(Seq.fill(params.MemoryBurstLength)(0.U(64.W))))
+
+  //バースト転送のカウンター
+  val count = RegInit(0.U(8.W))
+
+  //ウェイのカウンター(各セットごとにカウンターを用意)
+  val SelectWay = RegInit(VecInit(Seq.fill(params.ICacheSet)(0.U(1.W))))
+
   //タグ・インデックス・オフセットをレジスタに格納
   when(io.fetch.request.valid) {
     AddrOffsetReg := AddrOffset
     AddrIndexReg := AddrIndex
     AddrTagReg := AddrTag
+  }
+
+  //ヒットしたかどうか判定
+  val hitVec = WireInit(VecInit(Seq.fill(params.ICacheWay)(false.B)))
+  val hitWayNum = WireInit(0.U(log2Up(params.ICacheWay).W))
+  for(i <- 0 until params.ICacheWay)
+  {
+    hitVec(i) := ICacheValidBit(i)(AddrIndex) && ICacheTag(i).read(AddrIndex) === AddrTag
+    when(hitVec(i))
+    {
+      hitWayNum := i.U
+    }
+  }
+
+  val hit = hitVec.reduce(_ || _)
+
+  //BRAMからRead
+  val ReadData = MuxLookup(hitWayNum, 0.U)((0 until params.ICacheWay).map(i => i.U -> ICacheDataBlock(i).read(AddrIndex)))
+
+  when(RegNext(hit, false.B))
+  {
+    //ヒットした場合
+    val DataHitOut = MuxLookup(AddrOffsetReg, 0.U)(
+        (0 until params.ICacheDataNum).map(i => i.U -> ReadData((params.ICacheBlockWidth / params.ICacheDataNum) * (i + 1) - 1, (params.ICacheBlockWidth / params.ICacheDataNum) * i))
+    )
+    io.fetch.response.valid := true.B
+    io.fetch.response.bits := DataHitOut
+  } .otherwise {
+    //ミスした場合
+    io.memory.response.ready := true.B
+
+    //メモリからのデータ(64bit)をReadDataBufに格納
+    when(io.memory.response.valid) {
+      ReadDataBuf(count) := io.memory.response.bits.value
+      count := count + 1.U
+    }
+
+    when(count === 8.U)
+    {
+      io.memory.response.ready := false.B
+
+      //データをリトルエンディアンでReadDataComへ格納
+      val ReadDataCom = Cat(ReadDataBuf.reverse)
+      val DataMissOut = MuxLookup(AddrOffsetReg, 0.U)(
+          (0 until params.ICacheDataNum).map(i => i.U -> ReadDataCom((params.ICacheBlockWidth / params.ICacheDataNum) * (i + 1) - 1, (params.ICacheBlockWidth / params.ICacheDataNum) * i))
+      )
+      io.fetch.response.valid := true.B
+      io.fetch.response.bits := DataMissOut
+
+      //ウェイの選択を行い、キャッシュへ書き込む
+      SelectWay(AddrIndexReg) := SelectWay(AddrIndexReg) + 1.U
+      when(SelectWay(AddrIndexReg) === 0.U)
+      {
+        //ウェイ0に書き込み
+        // ICacheDataBlock(0).write(AddrIndexReg, ReadDataCom)
+        // ICacheTag(0).write(AddrIndexReg, AddrTagReg)
+        // ICacheValidBit(0)(AddrIndexReg) := true.B
+        count := 0.U
+      } .otherwise {
+        //ウェイ1に書き込み
+        // ICacheDataBlock(1).write(AddrIndexReg, ReadDataCom)
+        // ICacheTag(1).write(AddrIndexReg, AddrTagReg)
+        // ICacheValidBit(1)(AddrIndexReg) := true.B
+        count := 0.U
+      }
+    }
   }
 }
 
