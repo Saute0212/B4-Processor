@@ -131,22 +131,24 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
       io.fetch.response.valid := true.B
       io.fetch.response.bits := DataMissOut
 
+      count := 0.U
+      
       //ウェイの選択を行い、キャッシュへ書き込む
-      SelectWay(AddrIndexReg) := SelectWay(AddrIndexReg) + 1.U
-      when(SelectWay(AddrIndexReg) === 0.U)
-      {
+      // SelectWay(AddrIndexReg) := SelectWay(AddrIndexReg) + 1.U
+      // when(SelectWay(AddrIndexReg) === 0.U)
+      // {
         //ウェイ0に書き込み
         // ICacheDataBlock(0).write(AddrIndexReg, ReadDataCom)
         // ICacheTag(0).write(AddrIndexReg, AddrTagReg)
         // ICacheValidBit(0)(AddrIndexReg) := true.B
-        count := 0.U
-      } .otherwise {
+        // count := 0.U
+      // } .otherwise {
         //ウェイ1に書き込み
         // ICacheDataBlock(1).write(AddrIndexReg, ReadDataCom)
         // ICacheTag(1).write(AddrIndexReg, AddrTagReg)
         // ICacheValidBit(1)(AddrIndexReg) := true.B
-        count := 0.U
-      }
+        // count := 0.U
+      // }
     }
   }
 }
