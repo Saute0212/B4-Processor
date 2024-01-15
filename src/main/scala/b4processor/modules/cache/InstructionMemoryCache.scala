@@ -127,15 +127,15 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
     {
       io.memory.response.ready := false.B
 
-      // val ReadDataCom = Cat(ReadDataBuf.reverse)
+      val ReadDataCom = Cat(ReadDataBuf.reverse)
       
-      ICacheDataBlock(1).write(AddrIndexReg, Cat(ReadDataBuf.reverse))
-      ICacheTag(1).write(AddrIndexReg, Cat(ReadDataBuf.reverse))
+      ICacheDataBlock(1).write(AddrIndexReg, ReadDataCom)
+      ICacheTag(1).write(AddrIndexReg, ReadDataCom)
       ICacheValidBit(1)(AddrIndexReg) := true.B
       count := 0.U
 
       val DataMissOut = MuxLookup(AddrOffsetReg, 0.U)(
-          (0 until params.ICacheDataNum).map(i => i.U -> (Cat(ReadDataBuf.reverse))((params.ICacheBlockWidth / params.ICacheDataNum) * (i + 1) - 1, (params.ICacheBlockWidth / params.ICacheDataNum) * i))
+          (0 until params.ICacheDataNum).map(i => i.U -> ReadDataCom((params.ICacheBlockWidth / params.ICacheDataNum) * (i + 1) - 1, (params.ICacheBlockWidth / params.ICacheDataNum) * i))
       )
       io.fetch.response.valid := true.B
       io.fetch.response.bits := DataMissOut
