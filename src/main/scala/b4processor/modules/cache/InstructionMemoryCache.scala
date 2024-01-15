@@ -88,6 +88,7 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
     AddrTagReg := AddrTag
     AddrRequestReg := AddrRequest
   }
+  io.fetch.request.ready := RegNext(io.fetch.request.valid)
 
   // ヒットするか判定
   val hitVec = WireInit(VecInit(Seq.fill(params.ICacheWay)(false.B)))
@@ -107,7 +108,7 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
     ),
   )
 
-  val hit = hitVec.reduce(_ || _) && RegNext(io.fetch.request.valid)
+  val hit = hitVec.reduce(_ || _)
 
   private val idle :: requesting :: waitingResponse :: writeReadDataBuf :: Nil =
     Enum(4)
@@ -155,7 +156,6 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
       ),
     )
 
-    io.fetch.request.ready := true.B
     io.fetch.response.valid := true.B
     io.fetch.response.bits := DataHitOut
   }.otherwise {

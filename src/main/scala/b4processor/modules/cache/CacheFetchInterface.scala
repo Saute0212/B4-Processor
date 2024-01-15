@@ -36,6 +36,7 @@ class CacheFetchInterface(implicit params: Parameters) extends Module {
 
   val fetchedAddressValid = RegInit(false.B)
   val fetchedAddress = RegInit("xFFFFFFFF_FFFFFFFF".U)
+  val fetchedAddressNow = WireDefault(fetchedAddress)
   val fetchedData = Reg(UInt(128.W))
   val prevFetchedDataTop16 = Reg(UInt(16.W))
   val nextBlock = RegInit(false.B)
@@ -55,7 +56,7 @@ class CacheFetchInterface(implicit params: Parameters) extends Module {
   }
 
   when(
-    requestingAddressValid && !isRequesting &&
+    requestingAddressValid &&
       (fetchedAddress(63, 4) =/=
         requestingAddress(63, 4) || isEdge),
   ) {
@@ -107,7 +108,7 @@ class CacheFetchInterface(implicit params: Parameters) extends Module {
         (0 until 8 - 1).map(i => i.U -> fetchedDataNow(16 * i + 32 - 1, 16 * i)),
       )
       when(f.request.valid) {
-        when((f.request.bits(63, 4) + 1.U) === fetchedAddress(63, 4)) {
+        when((f.request.bits(63, 4) + 1.U) === fetchedAddressNow(63, 4)) {
           when(f.request.bits(3, 0) === BitPat("b111?") && nextBlock) {
             f.response.valid := true.B
             f.response.bits := fetchedDataNow(15, 0) ## prevFetchedDataTop16
@@ -115,7 +116,7 @@ class CacheFetchInterface(implicit params: Parameters) extends Module {
             f.response.valid := false.B
           }
         }
-        when((f.request.bits(63, 4)) === fetchedAddress(63, 4)) {
+        when(f.request.bits(63, 4) === fetchedAddressNow(63, 4)) {
           when(f.request.bits(3, 0) === BitPat("b111?")) {
             f.response.valid := false.B
           }.otherwise {
