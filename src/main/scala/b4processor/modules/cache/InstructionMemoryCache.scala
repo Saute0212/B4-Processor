@@ -43,9 +43,7 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
 
   //アドレスを格納
   val addr = WireInit(UInt(64.W), 0.U)
-  val addrReg = RegInit(UInt(64.W), 0.U)
   addr := io.fetch.request.bits
-  addrReg := io.fetch.request.bits
   when(io.fetch.request.valid)
   {
     io.memory.request.bits.address := io.fetch.request.bits(63, 6) ## 0.U(6.W)
