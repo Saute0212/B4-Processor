@@ -18,12 +18,12 @@ scalacOptions ++= Seq(
 Test / logBuffered := false
 //Test / parallelExecution := false
 
-scalaVersion := "2.13.10"
+scalaVersion := "2.13.12"
 
 addCompilerPlugin(
-  "org.chipsalliance" % "chisel-plugin" % "5.0.0" cross CrossVersion.full,
+  "org.chipsalliance" % "chisel-plugin" % "5.1.0" cross CrossVersion.full,
 )
 libraryDependencies ++= Seq(
-  "org.chipsalliance" %% "chisel" % "5.0.0",
+  "org.chipsalliance" %% "chisel" % "5.1.0",
   "edu.berkeley.cs" %% "chiseltest" % "5.0.2" % "test",
 )
