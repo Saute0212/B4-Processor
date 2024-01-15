@@ -135,11 +135,20 @@ class InstructionMemoryCache(implicit params: Parameters) extends Module {
     }
   }.elsewhen(memory_state === writeReadDataBuf) {
     val ReadDataCom = Cat(ReadDataBuf.reverse)
+    SelectWay(AddrIndexReg) := SelectWay(AddrIndexReg) + 1.U
+    when(SelectWay(AddrIndexReg) === 0.U)
+    {
+      ICacheDataBlock(0).write(AddrIndexReg, ReadDataCom)
+      ICacheTag(0).write(AddrIndexReg, AddrTagReg)
+      ICacheValidBit(0)(AddrIndexReg) := true.B
+    }
 
-    ICacheDataBlock(1).write(AddrIndexReg, ReadDataCom)
-    ICacheTag(1).write(AddrIndexReg, AddrTagReg)
-    ICacheValidBit(1)(AddrIndexReg) := true.B
-
+    when(SelectWay(AddrIndexReg) === 1.U)
+    {
+      ICacheDataBlock(1).write(AddrIndexReg, ReadDataCom)
+      ICacheTag(1).write(AddrIndexReg, AddrTagReg)
+      ICacheValidBit(1)(AddrIndexReg) := true.B 
+    }
     memory_state := idle
   }.otherwise {
     assert(false.B)
@@ -184,10 +193,45 @@ object InstructionMemoryCache extends App {
 }
 
 /*
-  === Test Result : 2023/12/29 01:20 ===
+  === Test Result : 2024/01/16 02:00 ===
+  ~z10~
   Total Test : 31
-  Succeeded  : 29
+  Succeeded  : 30
+  Failed     : 1
+
+  ~z20~
+  Total Test : 192
+  Succeeded  : 192
+  Failed     : 0
+
+  ~z30~
+  Total Test : 70
+  Succeeded  : 68
   Failed     : 2
+    "fence_i"
+    "rvc"
+
+  ~z40~
+  Total Test : 12
+  Succeeded  : 12
+  Failed     : 0
+
+  ~z50~
+  Total Test : 7
+  Succeeded  : 0
+  Failed     : 6
+  Ignored    : 1
+
+  ~z60~
+  Total Test : 0
+  Succeeded  : 0
+  Failed     : 0
+
+  ~sbt test~
+  Total Test : 387
+  Succeeded  : 366
+  Failed     : 21
+  Ignored    : 1
  */
 
 /*
