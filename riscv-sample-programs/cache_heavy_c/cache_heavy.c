@@ -3,25 +3,25 @@
 int div(int a, int b)
 {
     int tmp = 0;
-    tmp = a/b;
+    tmp = a-b;
     return tmp;
 }
 
 int mul(int a, int b)
 {
     int tmp = 0;
-    tmp = a*b;
+    tmp = a+b;
     return tmp;
 }
 
 int main()
 {
     //"input1" < "input2"
-    int input1[N][N] = {0};
-    int input2[N][N] = {0};
-    int tmp1[N][N] = {0};
-    int tmp2[N][N] = {0};
-    int output[N][N] = {0};
+    int input1[N][N];
+    int input2[N][N];
+    int tmp1[N][N];
+    int tmp2[N][N];
+    int output[N][N];
 
     for(int run_count = 0; run_count < 3; run_count++)
     {
