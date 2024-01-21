@@ -1,56 +1,70 @@
-#define N 100
-
-int div(int a, int b)
-{
-    int tmp = 0;
-    tmp = a-b;
-    return tmp;
-}
-
-int mul(int a, int b)
-{
-    int tmp = 0;
-    tmp = a+b;
-    return tmp;
-}
-
 int main()
 {
-    //"input1" < "input2"
-    int input1[N][N];
-    int input2[N][N];
-    int tmp1[N][N];
-    int tmp2[N][N];
-    int output[N][N];
-
-    for(int run_count = 0; run_count < 3; run_count++)
+    for(int i=0; i < 10; i++)
     {
-        for(int i = 0; i < N; i++)
-        {
-            for(int j = 0; j < N; j++)
-            {
-                input1[i][j] = i+1;
-                input2[i][j] = i+j+2;
-            }
-        }
+        //Other programs are using 2Set*1Way in front of this code.
+        //"nop":128bit*4
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
 
-        for(int i = 0; i < N; i++)
-        {
-            for(int j = 0; j < N; j++)
-            {
-                tmp1[i][j] = div(input1[i][j], input2[i][j]);
-                tmp2[i][j] = mul(input1[i][j], input2[i][j]);
-            }
-        }
+        //"nop":128bit*4
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
 
-        for(int i = 0; i < N; i++)
-        {
-            for(int j = 0; j < N; j++)
-            {
-                output[i][j] = tmp1[i][j]+tmp2[i][j];
-            }
-        }
+        //"nop":128bit*4
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+
+        //"nop":128bit*4
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+
+        //"nop":128bit*4
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+
+        //"nop":128bit*4
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+
+        //"nop":128bit*4
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+
+        //"nop":128bit*4
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+
+        //"nop":128bit*4
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+
+        //"nop":128bit*4
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
     }
 
-    return output[5][7];
+    __asm__ volatile("li x24,6;");
+
+    return 0;
 }
