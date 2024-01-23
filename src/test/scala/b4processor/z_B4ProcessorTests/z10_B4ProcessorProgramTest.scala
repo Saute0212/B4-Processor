@@ -678,4 +678,24 @@ class z10_B4ProcessorProgramTest
         c.checkForRegister(24, 6, 50000)
       }
   }
+
+  it should "run cache_div_mul test" in {
+    test(
+      new B4ProcessorWithMemory(
+      )(
+        defaultParams.copy(
+          threads = 1,
+          decoderPerThread = 4,
+          maxRegisterFileCommitCount = 4,
+          loadStoreQueueIndexWidth = 2,
+        ),
+      ),
+    )
+      .withAnnotations(
+        Seq(WriteWaveformAnnotation, backendAnnotation, CachingAnnotation),
+      ) { c =>
+        c.initialize("programs/riscv-sample-programs/cache_div_mul_c")
+        c.checkForRegister(26, 7, 1000)
+      }
+  }
 }
