@@ -672,4 +672,24 @@ class z10_B4ProcessorProgramTest
         c.checkForRegister(1, 3)
       }
   }
+
+  it should "run cache_heavy test" in {
+    test(
+      new B4ProcessorWithMemory(
+      )(
+        defaultParams.copy(
+          threads = 1,
+          decoderPerThread = 4,
+          maxRegisterFileCommitCount = 4,
+          loadStoreQueueIndexWidth = 2,
+        ),
+      ),
+    )
+      .withAnnotations(
+        Seq(WriteWaveformAnnotation, backendAnnotation, CachingAnnotation),
+      ) { c =>
+        c.initialize("programs/riscv-sample-programs/cache_heavy_c")
+        c.checkForRegister(24, 6, 50000)
+      }
+  }
 }

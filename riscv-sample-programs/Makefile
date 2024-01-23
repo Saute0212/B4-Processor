@@ -19,6 +19,7 @@ SUBDIRS := fibonacci \
 			io_test \
 			pext_test \
 			get_core_count \
+			cache_heavy_c \
 #			simple_loader_uart \
 
 all: $(SUBDIRS)
