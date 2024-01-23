@@ -1,5 +1,5 @@
 int main()
 {
-    __asm__ volatile("li x26,7")
+    __asm__ volatile("li x26,7");
     return 0;
 }
