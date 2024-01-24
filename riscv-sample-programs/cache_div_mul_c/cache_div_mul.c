@@ -1,8 +1,14 @@
-//a/b b!=0
-int div(int a, int b)
-{
-    int tmp, answer;
+#define N 10
 
+//a/2^shift
+int div(int a, int shift)
+{
+    int answer;
+    answer = a << N;
+    for(int i=0; i<shift; i++)
+    {
+        answer=answer >> 1;
+    }
     return answer;
 }
 
@@ -24,8 +30,22 @@ int mul(int a, int b)
 
 int main()
 {
-    int num;
-    num=div(5,7);
+    int num, num1, num2, num3[N];
+    for(int i=0; i<N; i++)
+    {
+        for(int j=0; j<N; j++)
+        {
+            num1=div(j, i);
+            num2=mul(i, j);
+            num3[i]+=num1+num2;
+        }
+    }
+
+    for(int i=0; i<N; i++)
+    {
+        num+=num3[i];
+    }
+
     __asm__ volatile("li x26,7");
-    return mul;
+    return num;
 }

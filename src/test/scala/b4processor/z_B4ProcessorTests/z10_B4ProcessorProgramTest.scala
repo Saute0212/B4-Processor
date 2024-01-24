@@ -695,7 +695,7 @@ class z10_B4ProcessorProgramTest
         Seq(WriteWaveformAnnotation, backendAnnotation, CachingAnnotation),
       ) { c =>
         c.initialize("programs/riscv-sample-programs/cache_div_mul_c")
-        c.checkForRegister(26, 7, 1000)
+        c.checkForRegister(26, 7, 10000)
       }
   }
 }

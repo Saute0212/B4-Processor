@@ -1,67 +1,20 @@
+#define NOP8() __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;")
+#define NOP32() do {NOP8(); NOP8(); NOP8(); NOP8(); } while(0)
+
 int main()
 {
     for(int i=0; i < 10; i++)
     {
-        //Other programs are using 2Set*1Way in front of this code.
-        //"nop":128bit*4
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-
-        //"nop":128bit*4
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-
-        //"nop":128bit*4
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-
-        //"nop":128bit*4
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-
-        //"nop":128bit*4
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-
-        //"nop":128bit*4
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-
-        //"nop":128bit*4
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-
-        //"nop":128bit*4
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-
-        //"nop":128bit*4
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-
-        //"nop":128bit*4
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
-        __asm__ volatile("nop;nop;nop;nop;nop;nop;nop;nop;");
+        NOP32();
+        NOP32();   
+        NOP32();
+        NOP32();
+        NOP32();
+        NOP32();
+        NOP32();
+        NOP32();
+        NOP32();
+        NOP32();
     }
 
     __asm__ volatile("li x24,6;");
