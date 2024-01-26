@@ -39,7 +39,7 @@ case class Parameters(
   pextExecutors: Int = 1,
   //命令キャッシュ用パラメータ
   ICacheWay: Int = 2,
-  ICacheSet: Int = 8,
+  ICacheSet: Int = 128,
   ICacheBlockWidth: Int = 512,
   ICacheDataNum: Int = 4,
   MemoryBurstLength: Int = 8,
